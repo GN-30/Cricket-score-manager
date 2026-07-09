@@ -32,7 +32,7 @@ export function Navbar() {
           >
             <Trophy className="w-5 h-5 text-[var(--color-deep-navy)]" />
           </motion.div>
-          <span className="font-black text-xl tracking-wide text-white uppercase group-hover:text-[var(--color-electric-blue)] transition-colors">CricManager</span>
+          <span className="font-black text-xl tracking-wide text-white uppercase group-hover:text-[var(--color-electric-blue)] transition-colors">CricBlitz</span>
         </Link>
 
         {/* Desktop nav links */}

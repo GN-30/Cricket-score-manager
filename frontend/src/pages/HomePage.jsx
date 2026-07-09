@@ -556,7 +556,7 @@ export default function HomePage() {
             pointerEvents: 'none',
           }}
         >
-          <div style={{ textAlign: 'center', padding: '0 24px', maxWidth: 960, width: '100%' }}>
+          <div className="stats-wrapper" style={{ textAlign: 'center', padding: '0 24px', maxWidth: 960, width: '100%' }}>
             <p
               style={{
                 color: '#00d4ff',
@@ -570,24 +570,19 @@ export default function HomePage() {
               ⚡ Live Platform Stats
             </p>
             <h2
+              className="stats-headline"
               style={{
                 color: 'white',
-                fontSize: 'clamp(28px,4vw,48px)',
+                fontSize: 'clamp(20px,4vw,48px)',
                 fontWeight: 800,
                 letterSpacing: '-0.02em',
-                margin: '0 0 48px',
+                margin: '0 0 32px',
                 textShadow: '0 2px 30px rgba(0,0,0,0.5)',
               }}
             >
               The Numbers Behind the Game
             </h2>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 20,
-              }}
-            >
+            <div className="stats-grid">
               {[
                 { label: 'Tournaments', value: stats.tournaments, icon: Trophy,    color: '#ffd700' },
                 { label: 'Teams',       value: stats.teams,       icon: Users,     color: '#00d4ff' },
@@ -635,15 +630,7 @@ export default function HomePage() {
                   >
                     {statsLoaded ? value : 0}
                   </div>
-                  <div
-                    style={{
-                      color,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
+                  <div className="stat-label" style={{ color }}>
                     {label}
                   </div>
                 </div>
@@ -697,13 +684,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 16,
-              }}
-            >
+            <div className="features-grid">
               {FEATURES.map(({ icon: Icon, title, desc }, i) => {
                 const colors = ['#00d4ff', '#39ff8e', '#ffd700', '#ff6b9d', '#a78bfa', '#fb923c']
                 const c = colors[i % colors.length]
@@ -852,7 +833,7 @@ export default function HomePage() {
               Join thousands of cricketers already managing their game on PitchMaster.
             </p>
 
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div className="cta-buttons" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link
                 to="/matches"
                 style={{
@@ -948,12 +929,12 @@ export default function HomePage() {
 
         {/* Scroll progress indicator */}
         <div
+          className="scroll-dots-rail"
           style={{
             position: 'absolute',
-            right: 24,
+            right: 16,
             top: '50%',
             transform: 'translateY(-50%)',
-            display: 'flex',
             flexDirection: 'column',
             gap: 8,
             zIndex: 30,
@@ -977,7 +958,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ─── CSS Keyframes (injected globally) ─────────────────────── */}
+      {/* ─── CSS Keyframes + Mobile Fixes ───────────────────────────── */}
       <style>{`
         @keyframes scrollDot {
           0%   { opacity: 1; transform: translateY(0); }
@@ -985,18 +966,72 @@ export default function HomePage() {
           61%  { opacity: 0; transform: translateY(0); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        @media (max-width: 768px) {
-          div[style*="gridTemplateColumns: repeat(4"] {
+
+        /* ── Stats panel: 4-col → 2-col on mobile ── */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+        }
+        @media (max-width: 700px) {
+          .stats-grid {
             grid-template-columns: repeat(2, 1fr) !important;
-          }
-          div[style*="gridTemplateColumns: repeat(3"] {
-            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
           }
         }
-        @media (max-width: 480px) {
-          div[style*="gridTemplateColumns: repeat(3"] {
+
+        /* ── Features grid: 3-col → 2-col → 1-col ── */
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+        }
+        @media (max-width: 700px) {
+          .features-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+        }
+        @media (max-width: 420px) {
+          .features-grid {
             grid-template-columns: 1fr !important;
           }
+        }
+
+        /* ── Scroll dots: hide on small screens ── */
+        .scroll-dots-rail {
+          display: flex;
+        }
+        @media (max-width: 480px) {
+          .scroll-dots-rail { display: none !important; }
+        }
+
+        /* ── Stat card label: never overflow ── */
+        .stat-label {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          word-break: break-word;
+          overflow-wrap: anywhere;
+        }
+        @media (max-width: 400px) {
+          .stat-label { font-size: 9px; letter-spacing: 0.08em; }
+        }
+
+        /* ── Stats panel padding ── */
+        @media (max-width: 480px) {
+          .stats-wrapper { padding: 0 12px !important; }
+          .stats-headline { font-size: 22px !important; margin-bottom: 24px !important; }
+          .feature-card { padding: 16px !important; }
+          .feature-card h3 { font-size: 13px !important; }
+          .feature-card p { font-size: 12px !important; }
+        }
+
+        /* ── CTA buttons stack on tiny screens ── */
+        @media (max-width: 400px) {
+          .cta-buttons { flex-direction: column !important; align-items: center !important; }
+          .cta-buttons a { width: 100% !important; justify-content: center !important; }
         }
       `}</style>
     </PageTransition>
