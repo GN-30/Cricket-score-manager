@@ -1,10 +1,22 @@
 import axios from 'axios'
 import { supabase } from '@/lib/supabase'
 
+// Always ensure the baseURL ends with /api
+const rawUrl = import.meta.env.VITE_API_URL
+const PROD_URL = 'https://cricket-score-manager-vta1.onrender.com/api'
+
+const getBaseURL = () => {
+  if (!rawUrl) {
+    // No env var set — use Vite proxy in dev, hardcoded URL in prod build
+    return import.meta.env.DEV ? '/api' : PROD_URL
+  }
+  // Strip trailing slash then ensure /api suffix
+  const clean = rawUrl.replace(/\/$/, '')
+  return clean.endsWith('/api') ? clean : `${clean}/api`
+}
+
 const api = axios.create({
-  // In production, VITE_API_URL = 'https://your-backend.onrender.com/api'
-  // In dev, Vite proxies /api → http://localhost:5000
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: getBaseURL(),
   headers: { 'Content-Type': 'application/json' },
 })
 
