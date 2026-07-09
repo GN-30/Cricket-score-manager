@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode so next-themes works with Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Colors - IPL Inspired Theme */
+  --color-deep-navy: #0B1120;
+  --color-electric-blue: #00D4FF;
+  --color-gold: #FFB800;
+  --color-neon-green: #39FF14;
+
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background-color: transparent; /* Let canvas show through */
+  color: white;
+  overflow-x: hidden;
+  cursor: none; /* Hide default cursor for custom cricket ball cursor */
+}
+
+/* Ensure links and buttons don't show the default pointer either */
+a, button, input, select, textarea {
+  cursor: none !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track { 
+  background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { 
+  background: var(--color-electric-blue); 
+}
+
+/* 
+  GLASSMORPHISM & PREMIUM UTILITIES 
+*/
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Inner glow for glass cards */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.neumorphic-button {
+  background: var(--color-deep-navy);
+  box-shadow:  5px 5px 10px #060911,
+              -5px -5px 10px #10192f;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.neumorphic-button:active {
+  box-shadow: inset 5px 5px 10px #060911,
+              inset -5px -5px 10px #10192f;
+}
+
+/* Glowing Text Utilities */
+.text-glow-electric {
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.6), 0 0 20px rgba(0, 212, 255, 0.4);
+}
+.text-glow-gold {
+  text-shadow: 0 0 10px rgba(255, 184, 0, 0.6), 0 0 20px rgba(255, 184, 0, 0.4);
+}
+
+/* Framer Motion Wrapper Utility */
+.page-container {
+  min-height: calc(100vh - 64px); /* Subtract Navbar height */
+  position: relative;
+  width: 100%;
+}
