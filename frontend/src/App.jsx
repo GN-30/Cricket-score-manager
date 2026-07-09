@@ -15,6 +15,7 @@ import AnalyticsPage from '@/pages/AnalyticsPage'
 import TournamentDetailsPage from '@/pages/TournamentDetailsPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { CustomCursor } from '@/components/CustomCursor'
+import PWAInstallPrompt from '@/components/PWAInstallPrompt'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -52,6 +53,7 @@ export default function App() {
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
         <AuthProvider>
           <CustomCursor />
+          <PWAInstallPrompt />
           <AnimatedRoutes />
         </AuthProvider>
       </ThemeProvider>
