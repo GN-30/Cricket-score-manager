@@ -6,22 +6,29 @@ import api from '@/services/api'
 import PageTransition from '@/components/PageTransition'
 
 /**
- * Compute effective tournament status:
- * - If stored status is already COMPLETED/ABANDONED/LIVE → use as-is
- * - If endDate has passed AND any matches were played → COMPLETED
- * - If endDate has passed AND no matches were played → ABANDONED
- * - Otherwise → use stored status (UPCOMING / ONGOING)
+ * Compute effective tournament status from match data:
+ * - ABANDONED if manually set to ABANDONED
+ * - LIVE if any match is LIVE
+ * - COMPLETED only when EVERY match is COMPLETED or ABANDONED
+ * - ONGOING if some matches played but not all done
+ * - Otherwise use stored status (UPCOMING / ONGOING)
  */
-function getEffectiveStatus(t, matchCounts = {}) {
-  if (t.status === 'COMPLETED' || t.status === 'ABANDONED' || t.status === 'LIVE') return t.status
-  if (t.endDate) {
-    const end = new Date(t.endDate)
-    if (end < new Date()) {
-      const played = matchCounts[t.id] ?? 0
-      return played > 0 ? 'COMPLETED' : 'ABANDONED'
-    }
+function getEffectiveStatus(t, matchData = {}) {
+  if (t.status === 'ABANDONED') return 'ABANDONED'
+
+  const { total = 0, completed = 0, live = 0, played = 0 } = matchData[t.id] || {}
+
+  if (total > 0) {
+    if (live > 0) return 'LIVE'
+    if (completed === total) return 'COMPLETED'   // all done
+    if (played > 0) return 'ONGOING'              // some done, some pending
+    return t.status || 'UPCOMING'
   }
-  return t.status
+
+  // No matches yet — fall back to stored status
+  if (t.status === 'COMPLETED' || t.status === 'LIVE') return t.status
+  if (t.endDate && new Date(t.endDate) < new Date()) return 'ABANDONED'
+  return t.status || 'UPCOMING'
 }
 
 const STATUS_STYLES = {
@@ -55,18 +62,21 @@ export default function TournamentsPage() {
         const tList = tRes.data?.data ?? []
         setTournaments(tList)
 
-        // For each tournament, fetch match count to determine completed vs abandoned
+        // For each tournament, fetch match stats to compute correct status
         const counts = {}
         await Promise.all(
           tList.map(async (t) => {
             try {
               const mRes = await api.get(`/matches?tournamentId=${t.id}`)
-              const played = (mRes.data?.data ?? []).filter(
-                m => m.status === 'COMPLETED' || m.status === 'LIVE' || m.status === 'ABANDONED'
-              ).length
-              counts[t.id] = played
+              const all = mRes.data?.data ?? []
+              counts[t.id] = {
+                total:     all.length,
+                completed: all.filter(m => m.status === 'COMPLETED' || m.status === 'ABANDONED').length,
+                live:      all.filter(m => m.status === 'LIVE').length,
+                played:    all.filter(m => m.status === 'COMPLETED' || m.status === 'LIVE' || m.status === 'ABANDONED').length,
+              }
             } catch {
-              counts[t.id] = 0
+              counts[t.id] = { total: 0, completed: 0, live: 0, played: 0 }
             }
           })
         )

@@ -80,13 +80,25 @@ router.get('/:id', async (req, res) => {
 // POST /api/matches (protected)
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { homeTeamId, awayTeamId, venue, date, format, tournamentId, status } = req.body
+    const { homeTeamId, awayTeamId, venue, date, format, tournamentId, status, matchType } = req.body
     if (!homeTeamId || !awayTeamId || !venue || !date) {
       return res.status(400).json({ error: 'homeTeamId, awayTeamId, venue and date are required' })
     }
+    const insertObj = {
+      id: Date.now().toString(),
+      homeTeamId,
+      awayTeamId,
+      venue,
+      date,
+      format: format || 'T20',
+      tournamentId: tournamentId || null,
+      status: status || 'SCHEDULED',
+      updatedAt: new Date().toISOString(),
+    }
+    if (matchType) insertObj.matchType = matchType
     const { data, error } = await supabase
       .from(TABLE)
-      .insert([{ id: Date.now().toString(), homeTeamId, awayTeamId, venue, date, format: format || 'T20', tournamentId, status: status || 'SCHEDULED', updatedAt: new Date().toISOString() }])
+      .insert([insertObj])
       .select()
       .single()
     if (error) throw error

@@ -587,10 +587,14 @@ export default function MatchesPage() {
     setToast({ message, type })
   }, [])
 
-  /* ── Fetch ── */
+  /* ── Fetch — only standalone matches (not part of a tournament) ── */
   useEffect(() => {
     api.get('/matches')
-      .then(res => setMatches(res.data?.data ?? []))
+      .then(res => {
+        const all = res.data?.data ?? []
+        // Exclude matches that belong to a tournament — those are shown in the tournament detail page
+        setMatches(all.filter(m => !m.tournamentId))
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -883,7 +887,7 @@ export default function MatchesPage() {
               className="text-slate-400 font-light text-lg"
               style={{ opacity: 0 }}
             >
-              Live updates, schedules &amp; past results — all in one ground.
+              Live updates, schedules &amp; past results. <span style={{ color: 'rgba(0,212,255,0.6)', fontWeight: 600, fontSize: '0.9em' }}>Tournament matches are shown inside each Tournament.</span>
             </p>
           </div>
 

@@ -205,7 +205,7 @@ export default function AdminPage() {
 
   const [teamForm, setTeamForm] = useState({ name: '', shortName: '', logoUrl: '' })
   const [playerForm, setPlayerForm] = useState({ name: '', teamId: '', role: 'BATSMAN' })
-  const [matchForm, setMatchForm] = useState({ homeTeamId: '', awayTeamId: '', venue: '', date: '', overs: 20, playersPerTeam: 11, status: 'SCHEDULED' })
+  const [matchForm, setMatchForm] = useState({ homeTeamId: '', awayTeamId: '', venue: '', date: '', overs: 20, playersPerTeam: 11, status: 'SCHEDULED', matchType: '' })
 
   const TOURNAMENT_DEFAULTS = { name: '', venue: '', startDate: '', endDate: '', format: 'ROUND_ROBIN', teams: [], overs: 20, playersPerTeam: 11, matchesPerDay: 1, matchStartTime: '14:00', gapHours: 0.5 }
   const [tournamentForm, setTournamentForm] = useState(TOURNAMENT_DEFAULTS)
@@ -390,9 +390,10 @@ export default function AdminPage() {
         }
         delete payload.overs
         delete payload.playersPerTeam
+        if (!payload.matchType) delete payload.matchType
         await api.post('/matches', payload)
         setSuccessMsg('Match scheduled successfully!')
-        setMatchForm({ homeTeamId: '', awayTeamId: '', venue: '', date: '', overs: 20, playersPerTeam: 11, status: 'SCHEDULED' })
+        setMatchForm({ homeTeamId: '', awayTeamId: '', venue: '', date: '', overs: 20, playersPerTeam: 11, status: 'SCHEDULED', matchType: '' })
       } else if (type === 'tournaments') {
         // fixturePreview already built in step 1 — just confirm and save
         const settings = { overs: Number(tournamentForm.overs), playersPerTeam: Number(tournamentForm.playersPerTeam) }
@@ -630,6 +631,20 @@ export default function AdminPage() {
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-5 h-5 group-hover:text-red-400 transition-colors" />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Match Type <span className="normal-case text-slate-600 font-medium">(for playoffs)</span></label>
+                  <div className="relative group">
+                    <select value={matchForm.matchType} onChange={e => setMatchForm({...matchForm, matchType: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 transition-colors appearance-none cursor-pointer group-hover:border-white/20">
+                      <option value="" className="bg-slate-900">Group Stage (default)</option>
+                      <option value="SEMIFINAL" className="bg-slate-900">Semi Final</option>
+                      <option value="SEMIFINAL_1" className="bg-slate-900">Semi Final 1</option>
+                      <option value="SEMIFINAL_2" className="bg-slate-900">Semi Final 2</option>
+                      <option value="FINAL" className="bg-slate-900">🏆 Final</option>
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-5 h-5 group-hover:text-red-400 transition-colors" />
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">Playoff matches appear in the Playoffs tab of the tournament.</p>
                 </div>
               </div>
 
