@@ -13,6 +13,8 @@ import AdminPage from '@/pages/AdminPage'
 import LiveScorer from '@/pages/LiveScorer'
 import AnalyticsPage from '@/pages/AnalyticsPage'
 import TournamentDetailsPage from '@/pages/TournamentDetailsPage'
+import ViewerLobby from '@/pages/ViewerLobby'
+import LiveMatchView from '@/pages/LiveMatchView'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { CustomCursor } from '@/components/CustomCursor'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
@@ -42,6 +44,10 @@ function AnimatedRoutes() {
           <Route path="/match/:id" element={<LiveScorer />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
+
+        {/* Public viewer routes — outside the main layout */}
+        <Route path="/watch/:id" element={<ViewerLobby />} />
+        <Route path="/watch/:id/live" element={<LiveMatchView />} />
       </Routes>
     </AnimatePresence>
   )

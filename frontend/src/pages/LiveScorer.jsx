@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
-import { ArrowLeft, Save, Zap, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Save, Zap, AlertCircle, Share2, Check, Mic } from 'lucide-react'
 import api from '@/services/api'
+import { supabase } from '@/lib/supabase'
 import PageTransition from '@/components/PageTransition'
 import { useAuth } from '@/contexts/AuthContext'
+import CommentaryFeed from '@/components/CommentaryFeed'
 
 const formatOvers = (balls) => `${Math.floor(balls / 6)}.${balls % 6}`
 
@@ -23,6 +25,13 @@ export default function LiveScorer() {
   const autoCompleteTriggered = useRef(false)
   
   const [scoreObj, setScoreObj] = useState(null)
+
+  // Commentary
+  const [comments, setComments]           = useState([])
+  const [commentText, setCommentText]     = useState('')
+  const [sendingComment, setSendingComment] = useState(false)
+  const [showCommentary, setShowCommentary] = useState(false)
+  const [shareCopied, setShareCopied]     = useState(false)
   
   const [isTossing, setIsTossing] = useState(false)
   const [tossResult, setTossResult] = useState('')
@@ -37,6 +46,34 @@ export default function LiveScorer() {
   
   useEffect(() => {
     fetchData()
+  }, [id])
+
+  // Fetch comments on load
+  const fetchComments = useCallback(async () => {
+    try {
+      const { data: { data } } = await api.get(`/comments?matchId=${id}`)
+      setComments(data)
+    } catch (err) { console.error(err) }
+  }, [id])
+
+  useEffect(() => { fetchComments() }, [fetchComments])
+
+  // Realtime comments subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel(`admin-comments-${id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'Comment', filter: `matchId=eq.${id}` },
+        (payload) => {
+          setComments(prev => {
+            if (prev.some(c => c.id === payload.new.id)) return prev
+            return [...prev, payload.new]
+          })
+        }
+      )
+      .subscribe()
+    return () => supabase.removeChannel(channel)
   }, [id])
 
   const fetchData = async () => {
@@ -91,6 +128,19 @@ export default function LiveScorer() {
         confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
         if (Date.now() < end) requestAnimationFrame(frame);
       }());
+    }
+  }
+
+  // Auto-save score to DB so realtime pushes updates to the commentary page
+  const autoSave = async (newScoreObj, statusOverride) => {
+    try {
+      const newStatus = statusOverride ?? (match.status === 'SCHEDULED' ? 'LIVE' : match.status)
+      await api.put(`/matches/${id}`, { score: newScoreObj, status: newStatus })
+      if (newStatus !== match.status) {
+        setMatch(prev => ({ ...prev, status: newStatus, score: newScoreObj }))
+      }
+    } catch (err) {
+      console.error('Auto-save failed:', err.message)
     }
   }
 
@@ -162,6 +212,8 @@ export default function LiveScorer() {
     }
 
     setScoreObj(newScoreObj)
+    // Auto-save after every ball so viewers get realtime updates
+    autoSave(newScoreObj)
   }
 
   const saveScore = async () => {
@@ -252,7 +304,10 @@ export default function LiveScorer() {
       if (newInnings.length > 0 && newInnings[0].balls === 0) {
         newInnings[0].teamId = battingTeamId
       }
-      return { ...prev, innings: newInnings }
+      const updated = { ...prev, innings: newInnings }
+      // Auto-save toss result so commentary page reflects batting team immediately
+      autoSave(updated)
+      return updated
     })
     
     setTossStage('DONE')
@@ -271,14 +326,17 @@ export default function LiveScorer() {
       batsmen: {},
       bowlers: {}
     }
-    setScoreObj({
+    const updated = {
       ...scoreObj,
       innings: [...scoreObj.innings, newInnings],
       currentInningsIndex: 1,
       currentStrikerId: '',
       currentNonStrikerId: '',
       currentBowlerId: ''
-    })
+    }
+    setScoreObj(updated)
+    // Auto-save so viewers see the 2nd innings start immediately
+    autoSave(updated)
   }
 
   let matchOvers = 20;
@@ -345,6 +403,39 @@ export default function LiveScorer() {
                 End Match
               </button>
             )}
+
+            {/* Share viewer link */}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/watch/${id}`).then(() => {
+                  setShareCopied(true)
+                  setTimeout(() => setShareCopied(false), 2000)
+                })
+              }}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all"
+              style={{
+                background: shareCopied ? 'rgba(57,255,20,0.12)' : 'rgba(255,255,255,0.06)',
+                border: shareCopied ? '1px solid rgba(57,255,20,0.3)' : '1px solid rgba(255,255,255,0.12)',
+                color: shareCopied ? '#39FF14' : 'white',
+              }}
+            >
+              {shareCopied ? <Check size={15} /> : <Share2 size={15} />}
+              {shareCopied ? 'Copied!' : 'Share'}
+            </button>
+
+            {/* Toggle commentary */}
+            <button
+              onClick={() => setShowCommentary(v => !v)}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all"
+              style={{
+                background: showCommentary ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.06)',
+                border: showCommentary ? '1px solid rgba(0,212,255,0.3)' : '1px solid rgba(255,255,255,0.12)',
+                color: showCommentary ? '#00D4FF' : 'white',
+              }}
+            >
+              <Mic size={15} />
+              {comments.length > 0 ? `Chat (${comments.length})` : 'Chat'}
+            </button>
           </div>
         </div>
 
@@ -656,6 +747,25 @@ export default function LiveScorer() {
             <p className="text-slate-500 max-w-md">The match scorecard will appear here once the toss has been completed and the innings officially begins.</p>
           </div>
         )}
+
+        {/* Admin Commentary Panel (collapsible) */}
+        <AnimatePresence>
+          {showCommentary && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="mt-6"
+            >
+              <CommentaryFeed
+                comments={comments}
+                readOnly={true}
+                maxHeight={340}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </PageTransition>
   )

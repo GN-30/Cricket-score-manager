@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, MapPin, Activity, Trophy, Zap, Clock, X, AlertCircle, CheckCircle2, Radio } from 'lucide-react'
+import { Calendar, MapPin, Activity, Trophy, Zap, Clock, X, AlertCircle, CheckCircle2, Radio, Eye } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import api from '@/services/api'
@@ -358,7 +358,7 @@ function MatchCard({ match, index, onScheduledClick, onCompletedClick }) {
       onScheduledClick?.()
     } else if (isLive) {
       if (user) navigate(`/match/${match.id}`)
-      else navigate(`/match/${match.id}`) // allow view
+      else navigate(`/watch/${match.id}`)
     } else if (isCompleted) {
       onCompletedClick?.(match)
     }
@@ -486,6 +486,23 @@ function MatchCard({ match, index, onScheduledClick, onCompletedClick }) {
               : '—'}
           </span>
         </div>
+
+        {/* Watch Live button for viewers */}
+        {isLive && (
+          <button
+            onClick={e => { e.stopPropagation(); navigate(`/watch/${match.id}`) }}
+            className="relative z-10 w-full mt-3 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,212,255,0.05))',
+              border: '1px solid rgba(0,212,255,0.3)',
+              color: '#00D4FF',
+              boxShadow: '0 0 12px rgba(0,212,255,0.1)',
+            }}
+          >
+            <Eye size={13} />
+            Watch Live &amp; Comment
+          </button>
+        )}
       </div>
     </div>
   )

@@ -222,6 +222,15 @@ function BracketMatchCard({ slot, label, highlight, onNavigate, user, isPlacehol
         >
           <PlayCircle size={14} /> {m.status === 'LIVE' ? 'Continue Scoring' : 'Start Match'}
         </button>
+      ) : m && !user && m.status === 'LIVE' ? (
+        <button
+          onClick={() => onNavigate(`/watch/${m.id}`)}
+          className="w-full py-2.5 rounded-xl font-black uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2"
+          style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.3)', color: '#00D4FF' }}
+        >
+          <span className="relative flex w-2 h-2"><span className="absolute inline-flex h-full w-full rounded-full bg-[#00D4FF] opacity-75 animate-ping" /><span className="relative inline-flex rounded-full w-2 h-2 bg-[#00D4FF]" /></span>
+          Watch Live
+        </button>
       ) : !m ? (
         <div className="text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest pt-2 border-t border-white/5">
           {isPlaceholder ? 'Awaiting group stage results' : 'Not yet scheduled'}
@@ -821,6 +830,15 @@ export default function TournamentDetailsPage() {
                       ? `${m.score.winnerId === m.homeTeamId ? m.homeTeam?.shortName : m.awayTeam?.shortName} Won`
                       : m.score?.winnerId === 'TIE' ? 'Match Tied' : 'No Result'}
                   </div>
+                ) : m.status === 'LIVE' && !user ? (
+                  <button
+                    onClick={() => navigate(`/watch/${m.id}`)}
+                    className="w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2"
+                    style={{ background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.3)', color: '#00D4FF' }}
+                  >
+                    <span className="relative flex w-2 h-2"><span className="absolute inline-flex h-full w-full rounded-full bg-[#00D4FF] opacity-75 animate-ping" /><span className="relative inline-flex rounded-full w-2 h-2 bg-[#00D4FF]" /></span>
+                    Watch Live
+                  </button>
                 ) : (
                   <div className="text-center text-xs font-bold text-slate-500 uppercase tracking-widest pt-3 border-t border-white/5">
                     Login to score

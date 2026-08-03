@@ -6,5 +6,6 @@ router.use('/tournaments', require('./tournaments'))
 router.use('/matches',     require('./matches'))
 router.use('/teams',       require('./teams'))
 router.use('/players',     require('./players'))
+router.use('/comments',    require('./comments'))
 
 module.exports = router

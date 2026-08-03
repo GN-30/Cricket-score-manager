@@ -386,6 +386,9 @@ export default function AdminPage() {
         }
         const payload = {
           ...matchForm,
+          // datetime-local gives "2026-07-13T21:00" (no timezone).
+          // new Date() treats it as local time → converts to proper UTC ISO string.
+          date: matchForm.date ? new Date(matchForm.date).toISOString() : matchForm.date,
           format: JSON.stringify({ overs: Number(matchForm.overs), playersPerTeam: Number(matchForm.playersPerTeam) }),
         }
         delete payload.overs
